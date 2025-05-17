@@ -8,7 +8,7 @@ import * as bootstrap from "bootstrap";
 cytoscape.use(cxtmenu);
 
 const colors = ['#ff0000', '#00cc66', '#ff9900', '#6633cc', '#0099ff'];
-const nodes = [
+let nodes = [
     [0, 0, 0, 0],
     [5, 0, 100, 180],
     [10, 0, 90, 150],
@@ -27,7 +27,7 @@ const nodes = [
     [8, 0, 385, 415]
 ];
 
-const arcs = [
+let arcs = [
     [0, 1, 10, 0], [0, 3, 40, 1], [0, 5, 45, 2], [1, 4, 5, 3], [2, 4, 5, 4],
     [2, 7, 10, 5], [2, 5, 25, 6], [3, 6, 10, 7], [3, 2, 5, 8], [4, 1, 25, 9],
     [4, 6, 15, 10], [5, 2, 5, 11], [5, 3, 20, 12], [6, 0, 10, 13], [7, 0, 15, 14],
@@ -40,6 +40,7 @@ const arcs = [
 // let nextNodeId;
 let nextArcId;
 
+// keeping the node 
 if (arcs.length > 0) {
     nextArcId = Math.max(...arcs.map(function (arc) {
         return arc[3];
@@ -68,7 +69,8 @@ else {
 // }
 
 function Arc({ ele, setArcMenu }) {
-    const arc = arcs.find(a => `n${a[3]}` === ele.id());
+    // const arc = arcs.find((a) => `n${a[3]}` === ele.id());
+    const arc = arcs[parseInt(ele.id().replace('n', ''), 10)];
 
     useEffect(() => {
         const modalInstance = new bootstrap.Modal(document.getElementById("menuModal"));
@@ -150,17 +152,22 @@ function Arc({ ele, setArcMenu }) {
 }
 
 function Node({ ele, setNodeMenu }) {
+    // find the element
     let n = nodes[parseInt(ele.id(), 10)];
+
+    // make the modal visible by activating the bootstrap script
     useEffect(() => {
         const modalInstance = new bootstrap.Modal(document.getElementById("menuModal"));
         modalInstance.show();
     }, []);
 
+    //simply remove the bg
     function disposeModal() {
         setNodeMenu(null)
         document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
     };
 
+    //unpdating the data of the node
     function editStats(){
         let q = document.querySelector('#q').value;
         let a = document.querySelector('#a').value;
@@ -173,6 +180,7 @@ function Node({ ele, setNodeMenu }) {
         disposeModal();
     }
 
+    //remove the rightclick default function 
     useEffect(() => {
         const handleContextMenu = (e) => e.preventDefault();
         document.addEventListener("contextmenu", handleContextMenu);
@@ -269,11 +277,12 @@ function Graph() {
     const [arcMenu, setArcMenu] = useState(null);
 
 
+    //
     useEffect(() => {
         const elements = [
             ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
-            ...arcs.map((a) => ({
-                data: { id:`n${a[3]}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
+            ...arcs.map((a, i) => ({
+                data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
 
@@ -355,7 +364,7 @@ function Graph() {
                 'border-color': '#FF0000'
             })
             .update();
-
+        //control pannel for nodes
         cy.cxtmenu({
             selector: 'node',
             commands: [
@@ -373,6 +382,7 @@ function Graph() {
                 }
             ]
         });
+        // control pannel for arcs
         cy.cxtmenu({
             selector: 'edge',
             commands: [
@@ -380,7 +390,6 @@ function Graph() {
                     content: 'modifica',
                     select: (ele) => {
                         showArcMenu(ele, arcMenu, setArcMenu);
-                        // cyRef.current.layout({ name: 'cose', animate: true }).run();
                     }
                 },
                 {
@@ -392,12 +401,23 @@ function Graph() {
             ]
         });
 
+        //create node with right click
         cy.on('cxttap', function (evt) {
             if (evt.target === cy) {
-                console.log('Tasto destro sullo sfondo');
+                const position = evt.position;
+                let n = [0, 0, 0, 0, {x: position.x, y: position.y}];
+                nodes.push(n);
+
+                cy.add({
+                    group:"nodes", 
+                    data: { id: `${nodes.length-1}`}, 
+                    position: {x: position.x, y: position.y}
+                });
+
             }
         });
 
+        //add an arc by clicking 2 node(the sequence of click is important)
         cy.on('tap', 'node', function (evt) {
             const node = evt.target;
             if (!selectedNode) {
@@ -425,6 +445,7 @@ function Graph() {
             }
         });
 
+        // remove the selected node for userfriendly interface
         cy.on('tap', function (event) {
             if (event.target === cy) {
                 if (selectedNode) {
@@ -453,10 +474,51 @@ function Graph() {
             status: 'remove',
             elements: removedGroup.json()
         };
+
         setUndoStack(undoStack.push(stack));
         setStackIndex(stackIndex + 1);
-        console.log(undoStack);
+        if(ele.group() === 'nodes'){
+            nodes.splice(ele.id(),1);
+            const removedIds = removedGroup.map(ele => ele.id());
+            arcs = arcs.filter((_, index) => {
+                const arcId = `n${index}`;
+                return !removedIds.includes(arcId);
+            });
+            synchronizeArcs(ele.id());
+        }
+        else{
+            arcs.splice(parseInt(ele.id().replace('n', ''),10),1)
+        }
+        // console.log(ele)
+        // console.log(undoStack);
         cy.remove(ele);
+        reconstructGraph();
+    }
+
+    function getGraphElements(){
+        const elements = [
+            ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
+            ...arcs.map((a, i) => ({
+                data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
+            }))
+        ];
+        return elements;
+    }
+
+    function synchronizeArcs(i){
+        console.log(arcs)
+        arcs = arcs.map(x=>{
+            if(x[0] > i){
+                x[0]-=1;
+                x[1]-=1;
+            }
+        })
+        console.log(arcs)
+    }
+    function reconstructGraph(){
+        cyRef.current.elements().remove();
+        cyRef.current.add(getGraphElements());
+
     }
 
     function showNodeMenu(ele, nodeMenu, setNodeMenu) {

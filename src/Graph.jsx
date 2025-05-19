@@ -97,6 +97,7 @@ function Arc({ ele, setArcMenu }) {
         };
     }, []);
 
+
     return (
         <>
             <div
@@ -172,11 +173,9 @@ function Node({ ele, setNodeMenu }) {
         let q = document.querySelector('#q').value;
         let a = document.querySelector('#a').value;
         let b = document.querySelector('#b').value;
-        console.log(n);
         n[0] = q;
         n[2] = a;
         n[3] = b;
-        console.log(n)
         disposeModal();
     }
 
@@ -284,7 +283,6 @@ function Graph() {
                 data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
-        console.log(arcs.length)
 
         const cy = cytoscape({
             container: cyRef.current,
@@ -427,7 +425,7 @@ function Graph() {
                 let arc = {
                     group: 'edges',
                     data: {
-                        id: nextArcId.toString(),
+                        id: (arcs.length).toString(),
                         source: selectedNode.id(),
                         target: node.id(),
                         label: 10,
@@ -435,7 +433,7 @@ function Graph() {
                 }
                 nextArcId += 1;
                 cy.add(arc);
-                arcs.push(arc)
+                // arcs.push(arc)
                 arcs.push([selectedNode.id(), node.id(), 10]);
                 selectedNode.removeClass('selected');
                 selectedNode = null;
@@ -489,26 +487,36 @@ function Graph() {
         else{
             arcs.splice(parseInt(ele.id().replace('n', ''),10),1)
         }
-        // console.log(ele)
-        // console.log(undoStack);
         cy.remove(ele);
         reconstructGraph();
     }
 
     function getGraphElements(){
+        const positions = {};
+        cyRef.current.nodes().map((node, i) => {
+            if(parseInt(node.id(), 10) !== i)
+            {
+                positions[(parseInt(node.id(),10)-1).toString()] = node.position();
+            }
+            else{
+                positions[node.id()] = node.position();
+            }
+        });
+
         const elements = [
-            ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
+            ...nodes.map((_, i) => ({
+                data: { id: `${i}` },
+                position: positions[i] || undefined 
+            })),
             ...arcs.map((a, i) => ({
                 data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
-        return elements;
+            return elements;
     }
 
     function synchronizeArcs(i){
-        console.log(arcs)
         arcs = arcs.map(x=>{
-            console.log(x)
             if(x[0] > i){
                 x[0] -= 1;
             }
@@ -517,12 +525,19 @@ function Graph() {
             }
             return x;
         })
-        console.log(arcs)
     }
     function reconstructGraph(){
+        let el = getGraphElements();
         cyRef.current.elements().remove();
-        cyRef.current.add(getGraphElements());
+        cyRef.current.add(el);
+        // cyRef.current.layout({
+        //     name: 'breadthfirst',
+        //     directed: true,
+        //     padding: 10,
+        //     roots: ['0']
+        // }).run();
         colorBranchesFrom('0', cyRef.current)
+        
     }
 
     function showNodeMenu(ele, nodeMenu, setNodeMenu) {

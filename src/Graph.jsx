@@ -7,7 +7,7 @@ import * as bootstrap from "bootstrap";
 
 cytoscape.use(cxtmenu);
 
-const colors = ['#ff0000', '#00cc66', '#ff9900', '#6633cc', '#0099ff'];
+// const colors = ['#ff0000', '#00cc66', '#ff9900', '#6633cc', '#0099ff'];
 let nodes = [
     [0, 0, 0, 0],
     [5, 0, 100, 180],
@@ -37,20 +37,30 @@ let arcs = [
     [14, 8, 10], [15, 8, 15], [7, 15, 50], [15, 7, 50]
 ];
 
-// let nextNodeId;
-let nextArcId;
+let vehicles = [
+    [20, 20],
+    [30, 35],
+    [40, 50],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
+    [70, 120],
 
-// keeping the node 
-if (arcs.length > 0) {
-    nextArcId = Math.max(...arcs.map(function (arc) {
-        return arc[3];
-    })) + 1;
-}
-else {
-    nextArcId = 0;
-}
 
-
+    [120, 225]
+];
 
 // function UndoButton({onClick}){
 //     return (
@@ -82,7 +92,7 @@ function Arc({ ele, setArcMenu }) {
         document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
     };
 
-    function editStats(){
+    function editStats() {
         let d = document.querySelector('#d').value;
         arc[2] = d;
         ele.data('label', arc[2]);
@@ -130,6 +140,7 @@ function Arc({ ele, setArcMenu }) {
                                     className="form-control"
                                     id="d"
                                     defaultValue={arc[2]}
+                                    min={0}
                                 />
                             </div>
                         </div>
@@ -169,7 +180,7 @@ function Node({ ele, setNodeMenu }) {
     };
 
     //unpdating the data of the node
-    function editStats(){
+    function editStats() {
         let q = document.querySelector('#q').value;
         let a = document.querySelector('#a').value;
         let b = document.querySelector('#b').value;
@@ -220,6 +231,7 @@ function Node({ ele, setNodeMenu }) {
                                     className="form-control"
                                     id="q"
                                     defaultValue={n[0]}
+                                    min={0}
                                 />
                             </div>
                             <div className="mb-3">
@@ -231,6 +243,7 @@ function Node({ ele, setNodeMenu }) {
                                     className="form-control"
                                     id="a"
                                     defaultValue={n[2]}
+                                    min={0}
                                 />
                             </div>
                             <div className="mb-3">
@@ -242,6 +255,7 @@ function Node({ ele, setNodeMenu }) {
                                     className="form-control"
                                     id="b"
                                     defaultValue={n[3]}
+                                    min={0}
                                 />
                             </div>
                         </div>
@@ -265,6 +279,99 @@ function Node({ ele, setNodeMenu }) {
     );
 }
 
+function Vehicle({ i, removeHandle, vehiclesState, onStateChange }) {
+
+
+    function onChangeQ(n) {
+        let copy = vehiclesState.slice();
+        copy[i][0] = n;
+        onStateChange(copy);
+    }
+
+    function onChangeF(n) {
+        let copy = vehiclesState.slice();
+        copy[i][1] = n;
+        onStateChange(copy);
+    }
+    return (
+        <>
+            <li className="list-group-item position-relative bg-dark-subtle">
+                <button
+                    type="button"
+                    className="btn-close position-absolute top-0 end-0 p-3 "
+                    aria-label="Close"
+                    onClick={removeHandle}
+                />
+                <div className='container mt-3'>
+                    <div className='row'>
+                        <div className='col-6'>
+                            <label htmlFor={'q'+i} className="form-label">
+                                Capacity
+                            </label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                defaultValue={vehiclesState[i][0]}
+                                placeholder="Q"
+                                id={'q'+i}
+                                name={'q'+i}
+                                onChange={(e) => onChangeQ(parseInt(e.target.value, 10))}
+                                min={0}
+                            />
+                        </div>
+                        <div className='col-6'>
+                            <label htmlFor={'f'+i} className="form-label">
+                                Cost
+                            </label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                defaultValue={vehiclesState[i][1]}
+                                placeholder="F"
+                                id={'f'+i}
+                                name={'f'+i}
+                                onChange={(e) => onChangeF(parseInt(e.target.value, 10))}
+                                min={0}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </>
+
+    );
+}
+
+function VehiclesMenu() {
+    const [vehiclesState, setVehiclesState] = useState(vehicles);
+    function removeHandle(i) {
+        // splice doesn't work because it gives back the 
+
+        vehiclesState.splice(i, 1);
+        let u = [...vehiclesState]
+
+        setVehiclesState(u);
+        // setVehiclesState(vehiclesState.filter((_, index) => index !== i));
+    }
+
+    return (
+        <>
+            <div className='col h-100 my-4'>
+
+                <h2 className='text-center m-0'>Vehicles</h2>
+                <ul className="list-group p-0 m-2 mh-100 overflow-y-scroll gb-5">
+                    {
+                        vehiclesState.map((x, i) => {
+                            return <Vehicle key={i} i={i} removeHandle={() => removeHandle(i)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
+                        })
+                    }
+                    <li className='list-group-item h-100'></li>
+                </ul>
+            </div>
+        </>
+    );
+}
+
 let selectedNode = null;
 
 
@@ -275,12 +382,11 @@ function Graph() {
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
 
-    //
     useEffect(() => {
         const elements = [
             ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
             ...arcs.map((a, i) => ({
-                data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
+                data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
 
@@ -403,13 +509,13 @@ function Graph() {
         cy.on('cxttap', function (evt) {
             if (evt.target === cy) {
                 const position = evt.position;
-                let n = [0, 0, 0, 0, {x: position.x, y: position.y}];
+                let n = [0, 0, 0, 0, { x: position.x, y: position.y }];
                 nodes.push(n);
 
                 cy.add({
-                    group:"nodes", 
-                    data: { id: `${nodes.length-1}`}, 
-                    position: {x: position.x, y: position.y}
+                    group: "nodes",
+                    data: { id: `${nodes.length - 1}` },
+                    position: { x: position.x, y: position.y }
                 });
 
             }
@@ -431,7 +537,6 @@ function Graph() {
                         label: 10,
                     }
                 }
-                nextArcId += 1;
                 cy.add(arc);
                 // arcs.push(arc)
                 arcs.push([selectedNode.id(), node.id(), 10]);
@@ -454,7 +559,7 @@ function Graph() {
             }
         });
 
-        colorBranchesFrom('0', cy);
+        // colorBranchesFrom('0', cy);
 
     }, []);
 
@@ -463,9 +568,30 @@ function Graph() {
         <>
             {nodeMenu && <Node ele={nodeMenu} setNodeMenu={setNodeMenu} />}
             {arcMenu && <Arc ele={arcMenu} setArcMenu={setArcMenu} />}
-            <div style={{ height: '80vh', width: '100%' }} ref={cyRef}></div>
+            <div className='container-flow h-100'>
+                <div className='row h-100'>
+                    <div className='col-9 h-100'>
+                        {/* style={{ height: '90vh', width: '100%' }} */}
+                        <div className='w-100 h-100' ref={cyRef}></div>
+                    </div>
+                    <VehiclesMenu />
+                </div>
+            </div>
         </>
     );
+
+    // function getGraphJson(){
+    //     let graphJson = {
+    //         "nodes": nodes,
+    //         "arcs": arcs
+    //     }
+    //     return JSON.stringify(graphJson)
+    // }
+
+    // TO DO
+    // function getVehicleJson(){
+
+    // }
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());
@@ -476,8 +602,8 @@ function Graph() {
 
         // setUndoStack(undoStack.push(stack));
         // setStackIndex(stackIndex + 1);
-        if(ele.group() === 'nodes'){
-            nodes.splice(ele.id(),1);
+        if (ele.group() === 'nodes') {
+            nodes.splice(ele.id(), 1);
             const removedIds = removedGroup.map(ele => ele.id());
             arcs = arcs.filter((_, index) => {
                 const arcId = `n${index}`;
@@ -485,21 +611,20 @@ function Graph() {
             });
             synchronizeArcs(parseInt(ele.id().replace('n', ''), 10));
         }
-        else{
-            arcs.splice(parseInt(ele.id().replace('n', ''),10),1)
+        else {
+            arcs.splice(parseInt(ele.id().replace('n', ''), 10), 1)
         }
         cy.remove(ele);
         reconstructGraph();
     }
 
-    function getGraphElements(){
+    function getGraphElements() {
         const positions = {};
         cyRef.current.nodes().map((node, i) => {
-            if(parseInt(node.id(), 10) !== i)
-            {
-                positions[(parseInt(node.id(),10)-1).toString()] = node.position();
+            if (parseInt(node.id(), 10) !== i) {
+                positions[(parseInt(node.id(), 10) - 1).toString()] = node.position();
             }
-            else{
+            else {
                 positions[node.id()] = node.position();
             }
         });
@@ -507,38 +632,30 @@ function Graph() {
         const elements = [
             ...nodes.map((_, i) => ({
                 data: { id: `${i}` },
-                position: positions[i] || undefined 
+                position: positions[i] || undefined
             })),
             ...arcs.map((a, i) => ({
-                data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
+                data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
-            return elements;
+        return elements;
     }
 
-    function synchronizeArcs(i){
-        arcs = arcs.map(x=>{
-            if(x[0] > i){
+    function synchronizeArcs(i) {
+        arcs = arcs.map(x => {
+            if (x[0] > i) {
                 x[0] -= 1;
             }
-            if(x[1] >= i){
+            if (x[1] >= i) {
                 x[1] -= 1;
             }
             return x;
         })
     }
-    function reconstructGraph(){
+    function reconstructGraph() {
         let el = getGraphElements();
         cyRef.current.elements().remove();
         cyRef.current.add(el);
-        // cyRef.current.layout({
-        //     name: 'breadthfirst',
-        //     directed: true,
-        //     padding: 10,
-        //     roots: ['0']
-        // }).run();
-        colorBranchesFrom('0', cyRef.current)
-        
     }
 
     function showNodeMenu(ele, nodeMenu, setNodeMenu) {
@@ -549,36 +666,6 @@ function Graph() {
         setArcMenu(ele);
     }
 
-}
-
-function colorBranchesFrom(rootId, cy) {
-
-    const root = cy.getElementById(rootId);
-    const outEdges = root.outgoers('edge');
-    const visitedEdges = new Set();
-
-    outEdges.forEach((edge, i) => {
-        const color = colors[i % colors.length];
-        paintBranch(edge, color, visitedEdges);
-    });
-}
-
-function paintBranch(edge, color, visitedEdges) {
-    if (visitedEdges.has(edge.id())) return;
-
-    edge.style({
-        'line-color': color,
-        'target-arrow-color': color
-    });
-
-    visitedEdges.add(edge.id());
-
-    const target = edge.target();
-    const nextEdges = target.outgoers('edge');
-
-    nextEdges.forEach(nextEdge => {
-        paintBranch(nextEdge, color, visitedEdges);
-    });
 }
 
 export default Graph

@@ -359,7 +359,7 @@ function VehiclesMenu() {
             <div className='col h-100 my-4'>
 
                 <h2 className='text-center m-0'>Vehicles</h2>
-                <ul className="list-group p-0 m-2 mh-100 overflow-y-scroll gb-5">
+                <ul className="list-group p-0 m-2 mh-70 overflow-y-scroll">
                     {
                         vehiclesState.map((x, i) => {
                             return <Vehicle key={i} i={i} removeHandle={() => removeHandle(i)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />

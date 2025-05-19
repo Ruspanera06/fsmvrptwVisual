@@ -271,11 +271,10 @@ let selectedNode = null;
 
 function Graph() {
     const cyRef = useRef(null);
-    const [undoStack, setUndoStack] = useState([]);
-    const [stackIndex, setStackIndex] = useState(0);
+    // const [undoStack, setUndoStack] = useState([]);
+    // const [stackIndex, setStackIndex] = useState(0);
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
-
 
     //
     useEffect(() => {
@@ -285,6 +284,7 @@ function Graph() {
                 data: { id:`n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
             }))
         ];
+        console.log(arcs.length)
 
         const cy = cytoscape({
             container: cyRef.current,
@@ -470,13 +470,13 @@ function Graph() {
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());
-        let stack = {
-            status: 'remove',
-            elements: removedGroup.json()
-        };
+        // let stack = {
+        //     status: 'remove',
+        //     elements: removedGroup.json()
+        // };
 
-        setUndoStack(undoStack.push(stack));
-        setStackIndex(stackIndex + 1);
+        // setUndoStack(undoStack.push(stack));
+        // setStackIndex(stackIndex + 1);
         if(ele.group() === 'nodes'){
             nodes.splice(ele.id(),1);
             const removedIds = removedGroup.map(ele => ele.id());
@@ -484,7 +484,7 @@ function Graph() {
                 const arcId = `n${index}`;
                 return !removedIds.includes(arcId);
             });
-            synchronizeArcs(ele.id());
+            synchronizeArcs(parseInt(ele.id().replace('n', ''), 10));
         }
         else{
             arcs.splice(parseInt(ele.id().replace('n', ''),10),1)
@@ -508,17 +508,21 @@ function Graph() {
     function synchronizeArcs(i){
         console.log(arcs)
         arcs = arcs.map(x=>{
+            console.log(x)
             if(x[0] > i){
-                x[0]-=1;
-                x[1]-=1;
+                x[0] -= 1;
             }
+            if(x[1] >= i){
+                x[1] -= 1;
+            }
+            return x;
         })
         console.log(arcs)
     }
     function reconstructGraph(){
         cyRef.current.elements().remove();
         cyRef.current.add(getGraphElements());
-
+        colorBranchesFrom('0', cyRef.current)
     }
 
     function showNodeMenu(ele, nodeMenu, setNodeMenu) {

@@ -5,9 +5,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
 
-cytoscape.use(cxtmenu);
-
-// const colors = ['#ff0000', '#00cc66', '#ff9900', '#6633cc', '#0099ff'];
 let nodes = [
     [0, 0, 0, 0],
     [5, 0, 100, 180],
@@ -42,23 +39,6 @@ let vehicles = [
     [30, 35],
     [40, 50],
     [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-    // [70, 120],
-
-
     [120, 225]
 ];
 
@@ -70,24 +50,7 @@ vehicles = vehicles.map((x, i) => {
     }
 });
 
-// function UndoButton({onClick}){
-//     return (
-//         <button onClick={onClick}>
-//           {'<-'}
-//         </button>
-//       );
-// }
-
-// function ProceedButton(onClick){
-//     return (
-//         <button onClick={onClick}>
-//           {'->'}
-//         </button>
-//     );
-// }
-
 function Arc({ ele, setArcMenu }) {
-    // const arc = arcs.find((a) => `n${a[3]}` === ele.id());
     const arc = arcs[parseInt(ele.id().replace('n', ''), 10)];
 
     useEffect(() => {
@@ -287,7 +250,7 @@ function Node({ ele, setNodeMenu }) {
     );
 }
 
-function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
+function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
 
 
     function onChangeQ(n) {
@@ -313,7 +276,7 @@ function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
                 <div className='container mt-3'>
                     <div className='row'>
                         <div className='col-6'>
-                            <label htmlFor={'q'+id} className="form-label">
+                            <label htmlFor={'q' + id} className="form-label">
                                 Capacity
                             </label>
                             <input
@@ -321,14 +284,14 @@ function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
                                 className="form-control"
                                 defaultValue={vehiclesState.find(x => x.id == id).q}
                                 placeholder="Q"
-                                id={'q'+id}
-                                name={'q'+id}
+                                id={'q' + id}
+                                name={'q' + id}
                                 onChange={(e) => onChangeQ(parseInt(e.target.value, 10))}
                                 min={0}
                             />
                         </div>
                         <div className='col-6'>
-                            <label htmlFor={'f'+id} className="form-label">
+                            <label htmlFor={'f' + id} className="form-label">
                                 Cost
                             </label>
                             <input
@@ -336,8 +299,8 @@ function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
                                 className="form-control"
                                 defaultValue={vehiclesState.find(x => x.id == id).f}
                                 placeholder="F"
-                                id={'f'+id}
-                                name={'f'+id}
+                                id={'f' + id}
+                                name={'f' + id}
                                 onChange={(e) => onChangeF(parseInt(e.target.value, 10))}
                                 min={0}
                             />
@@ -352,7 +315,7 @@ function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
 
 function VehiclesMenu() {
     const [vehiclesState, setVehiclesState] = useState(vehicles);
-    const [nextIndex, setNextIndex] = useState(vehicles[vehicles.length-1].id+1);
+    const [nextIndex, setNextIndex] = useState(vehicles[vehicles.length - 1].id + 1);
     function removeHandle(id) {
         let u = vehiclesState.slice();
         u.splice(u.indexOf(u.find(x => x.id == id)), 1);
@@ -360,14 +323,14 @@ function VehiclesMenu() {
         setVehiclesState(u);
     }
 
-    function addVehicle(){
+    function addVehicle() {
         let tmp = [...vehiclesState];
         tmp.push({
             id: nextIndex,
             q: 0,
             f: 0,
         });
-        setNextIndex(nextIndex+1);
+        setNextIndex(nextIndex + 1);
         setVehiclesState(tmp);
     }
 
@@ -381,19 +344,18 @@ function VehiclesMenu() {
                         <div className="col-6"><h2 className='text-center m-0'>Vehicles</h2></div>
                         <div className="col-2">
                             <button type="button" className="btn btn-primary" onClick={addVehicle} >
-                            <span className='fs-1'>+</span>
-                        </button>
+                                <span className='fs-1'>+</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <ul className="list-group p-0 m-2 mh-70">
                     {
                         vehiclesState.map(x => {
-                            return <Vehicle key={x.id} id = {x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
+                            return <Vehicle key={x.id} id={x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
                         })
                     }
-                    {/* <li className='list-group-item h-100'></li> */}
                 </ul>
             </div>
         </>
@@ -405,12 +367,41 @@ let selectedNode = null;
 
 function Graph() {
     const cyRef = useRef(null);
-    // const [undoStack, setUndoStack] = useState([]);
-    // const [stackIndex, setStackIndex] = useState(0);
+    const socketRef = useRef(null);
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
+    const [connected, setConnected] = useState(false);
 
+    //websocket 
+    const connectToSocket = () => {
+        if (socketRef.current) return;
+
+        socketRef.current = new WebSocket("ws://localhost:8080/ws");
+
+        socketRef.current.onopen = () => {
+            setConnected(true);
+            console.log("Connesso al WebSocket");
+            socketRef.current.send("Ciao dal client!");
+        };
+
+        socketRef.current.onmessage = (event) => {
+            console.log(event)
+        };
+
+        socketRef.current.onclose = () => {
+            setConnected(false);
+            socketRef.current = null;
+            console.log("WebSocket chiuso");
+        };
+
+        socketRef.current.onerror = (err) => {
+            console.error("Errore WebSocket:", err);
+        };
+    };
+
+    //cyto useEffect
     useEffect(() => {
+        cytoscape.use(cxtmenu);
         const elements = [
             ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
             ...arcs.map((a, i) => ({
@@ -599,41 +590,30 @@ function Graph() {
             <div className='container-flow h-100'>
                 <div className='row h-100'>
                     <div className='col-9 h-100'>
-                        {/* style={{ height: '90vh', width: '100%' }} */}
                         <div className='w-100 h-100' ref={cyRef}></div>
                     </div>
                     <VehiclesMenu />
+                    <div className='position-absolute top-0 left-0'>
+                        <button type="button" className="btn btn-primary btn-sm" onClick={connectToSocket}>
+                            {connected===false? 'Connect To Socket': 'Disconnecto From Socket'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </>
     );
 
-    // function getGraphJson(){
-    //     let graphJson = {
-    //         "nodes": nodes,
-    //         "arcs": arcs
-    //     }
-    //     return JSON.stringify(graphJson)
-    // }
-
-    function getJson(){
+    function getJson() {
         let json = {
             "nodes": nodes,
             "arcs": arcs,
-            "vehicles": vehicles
+            "vehicles": vehicles.map(v => [v.q, v.f])
         };
         return json;
     }
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());
-        // let stack = {
-        //     status: 'remove',
-        //     elements: removedGroup.json()
-        // };
-
-        // setUndoStack(undoStack.push(stack));
-        // setStackIndex(stackIndex + 1);
         if (ele.group() === 'nodes') {
             nodes.splice(ele.id(), 1);
             const removedIds = removedGroup.map(ele => ele.id());

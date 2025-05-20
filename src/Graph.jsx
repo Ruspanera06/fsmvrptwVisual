@@ -294,7 +294,6 @@ function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
         let copy = vehiclesState.slice();
         copy[copy.indexOf(copy.find(x => x.id == id))].q = n;
         onStateChange(copy);
-        console.log(vehiclesState)
     }
 
     function onChangeF(n) {
@@ -356,7 +355,7 @@ function VehiclesMenu() {
     const [nextIndex, setNextIndex] = useState(vehicles[vehicles.length-1].id+1);
     function removeHandle(id) {
         let u = vehiclesState.slice();
-        u.splice(u.find(x => x.id == id), 1);
+        u.splice(u.indexOf(u.find(x => x.id == id)), 1);
         console.log(u);
         setVehiclesState(u);
     }
@@ -378,11 +377,13 @@ function VehiclesMenu() {
         <>
             <div className='col h-100 my-4 overflow-y-scroll'>
                 <div className='container'>
-                    <div className='row'>
-                        <h2 className='text-center m-0 col '>Vehicles</h2>
-                        <button type="button" className="btn col border p-1" onClick={addVehicle} >
+                    <div className='row align-items-center justify-content-center'>
+                        <div className="col-6"><h2 className='text-center m-0'>Vehicles</h2></div>
+                        <div className="col-2">
+                            <button type="button" className="btn btn-primary" onClick={addVehicle} >
                             <span className='fs-1'>+</span>
                         </button>
+                        </div>
                     </div>
                 </div>
                 

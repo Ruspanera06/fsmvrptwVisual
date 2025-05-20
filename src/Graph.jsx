@@ -42,25 +42,33 @@ let vehicles = [
     [30, 35],
     [40, 50],
     [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
-    [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
+    // [70, 120],
 
 
     [120, 225]
 ];
+
+vehicles = vehicles.map((x, i) => {
+    return {
+        id: i,
+        q: x[0],
+        f: x[1],
+    }
+});
 
 // function UndoButton({onClick}){
 //     return (
@@ -279,18 +287,19 @@ function Node({ ele, setNodeMenu }) {
     );
 }
 
-function Vehicle({ i, removeHandle, vehiclesState, onStateChange }) {
+function Vehicle({id, removeHandle, vehiclesState, onStateChange }) {
 
 
     function onChangeQ(n) {
         let copy = vehiclesState.slice();
-        copy[i][0] = n;
+        copy[copy.indexOf(copy.find(x => x.id == id))].q = n;
         onStateChange(copy);
+        console.log(vehiclesState)
     }
 
     function onChangeF(n) {
         let copy = vehiclesState.slice();
-        copy[i][1] = n;
+        copy[copy.indexOf(copy.find(x => x.id == id))].f = n;
         onStateChange(copy);
     }
     return (
@@ -305,31 +314,31 @@ function Vehicle({ i, removeHandle, vehiclesState, onStateChange }) {
                 <div className='container mt-3'>
                     <div className='row'>
                         <div className='col-6'>
-                            <label htmlFor={'q'+i} className="form-label">
+                            <label htmlFor={'q'+id} className="form-label">
                                 Capacity
                             </label>
                             <input
                                 type="number"
                                 className="form-control"
-                                defaultValue={vehiclesState[i][0]}
+                                defaultValue={vehiclesState.find(x => x.id == id).q}
                                 placeholder="Q"
-                                id={'q'+i}
-                                name={'q'+i}
+                                id={'q'+id}
+                                name={'q'+id}
                                 onChange={(e) => onChangeQ(parseInt(e.target.value, 10))}
                                 min={0}
                             />
                         </div>
                         <div className='col-6'>
-                            <label htmlFor={'f'+i} className="form-label">
+                            <label htmlFor={'f'+id} className="form-label">
                                 Cost
                             </label>
                             <input
                                 type="number"
                                 className="form-control"
-                                defaultValue={vehiclesState[i][1]}
+                                defaultValue={vehiclesState.find(x => x.id == id).f}
                                 placeholder="F"
-                                id={'f'+i}
-                                name={'f'+i}
+                                id={'f'+id}
+                                name={'f'+id}
                                 onChange={(e) => onChangeF(parseInt(e.target.value, 10))}
                                 min={0}
                             />
@@ -344,28 +353,46 @@ function Vehicle({ i, removeHandle, vehiclesState, onStateChange }) {
 
 function VehiclesMenu() {
     const [vehiclesState, setVehiclesState] = useState(vehicles);
-    function removeHandle(i) {
-        // splice doesn't work because it gives back the 
-
-        vehiclesState.splice(i, 1);
-        let u = [...vehiclesState]
-
+    const [nextIndex, setNextIndex] = useState(vehicles[vehicles.length-1].id+1);
+    function removeHandle(id) {
+        let u = vehiclesState.slice();
+        u.splice(u.find(x => x.id == id), 1);
+        console.log(u);
         setVehiclesState(u);
-        // setVehiclesState(vehiclesState.filter((_, index) => index !== i));
     }
+
+    function addVehicle(){
+        let tmp = [...vehiclesState];
+        tmp.push({
+            id: nextIndex,
+            q: 0,
+            f: 0,
+        });
+        setNextIndex(nextIndex+1);
+        setVehiclesState(tmp);
+    }
+
+
 
     return (
         <>
-            <div className='col h-100 my-4'>
-
-                <h2 className='text-center m-0'>Vehicles</h2>
-                <ul className="list-group p-0 m-2 mh-70 overflow-y-scroll">
+            <div className='col h-100 my-4 overflow-y-scroll'>
+                <div className='container'>
+                    <div className='row'>
+                        <h2 className='text-center m-0 col '>Vehicles</h2>
+                        <button type="button" className="btn col border p-1" onClick={addVehicle} >
+                            <span className='fs-1'>+</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <ul className="list-group p-0 m-2 mh-70">
                     {
-                        vehiclesState.map((x, i) => {
-                            return <Vehicle key={i} i={i} removeHandle={() => removeHandle(i)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
+                        vehiclesState.map(x => {
+                            return <Vehicle key={x.id} id = {x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
                         })
                     }
-                    <li className='list-group-item h-100'></li>
+                    {/* <li className='list-group-item h-100'></li> */}
                 </ul>
             </div>
         </>
@@ -588,10 +615,14 @@ function Graph() {
     //     return JSON.stringify(graphJson)
     // }
 
-    // TO DO
-    // function getVehicleJson(){
-
-    // }
+    function getJson(){
+        let json = {
+            "nodes": nodes,
+            "arcs": arcs,
+            "vehicles": vehicles
+        };
+        return json;
+    }
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());

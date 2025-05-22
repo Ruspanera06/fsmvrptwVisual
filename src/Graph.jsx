@@ -4,7 +4,7 @@ import cxtmenu from 'cytoscape-cxtmenu';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
-import { connect } from 'socket.io-client';
+// import { connect } from 'socket.io-client';
 
 let nodes = [
     [0, 0, 0, 0],
@@ -379,15 +379,21 @@ function Graph() {
         if (socketRef.current) return;
 
         socketRef.current = new WebSocket("ws://localhost:8080/ws");
+        socketRef.current.binaryType = "arraybuffer";
 
         socketRef.current.onopen = () => {
             setConnected(true);
-            console.log("Connesso al WebSocket");
-            socketRef.current.send("Ciao dal client!");
+            console.log("WebSocket connected");
+            // socketRef.current.send("Ciao dal client!");
+            socketRef.current.send(getJson());
+            console.log(getJson());
         };
 
         socketRef.current.onmessage = (event) => {
             console.log(event);
+            if (event.data instanceof ArrayBuffer){
+                showSolutions(JSON.parse(event.data));
+            }
         };
 
         socketRef.current.onclose = () => {
@@ -605,7 +611,7 @@ function Graph() {
         </>
     );
 
-    function getJson() {
+    function getGraph() {
         let json = {
             "nodes": nodes,
             "arcs": arcs,
@@ -613,36 +619,55 @@ function Graph() {
         };
         return json;
     }
+    function getJson(){
+        return JSON.stringify(getGraph())
+    }
 
     //TO DO give the possibiliti to chose color and distance
-    function addArc(i, j){
-        let arc = {
-            group: 'edges',
-            data: {
-                id: (arcs.length).toString(),
-                source: i.toString(),
-                target: j.toString(),
-                label: 10,
-            }
+    // function addArc(i, j){
+    //     let arc = {
+    //         group: 'edges',
+    //         data: {
+    //             id: (arcs.length).toString(),
+    //             source: i.toString(),
+    //             target: j.toString(),
+    //             label: 10,
+    //         }
+    //     }
+    //     cyRef.current.add(arc);
+    //     arcs.push([i, j, 10]);
+    // }
+
+
+    function shuffleArray(arr){
+        for(let i = arr.length - 1; i > 0; i--){
+            let j = Math.floor(Math.random() * (i+1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        cyRef.current.add(arc);
-        arcs.push([i, j, 10]);
+        return arr;
     }
 
     //TO DO change the label
-    function renderRoute(route, i){
+    function renderRoute(route, color){
         route.map(a=>{
-            a.push([a.i, a.j, 10]);
+            a.push([a.i, a.j, a.d, color]);
         });
     }
 
     function showSolutions(solutions) {
         cyRef.current.arcs.edges().remove();
         arcs = [];
+        let colors =  [
+            '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+            '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+            '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+            '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+        ];
+        colors = shuffleArray(colors);
+
         solutions.map((routes)=>{
-            //r will be a list of arcs;
             routes.map((r, i)=>{
-                renderRoute(r, i)
+                renderRoute(r, colors[i])
             })
         });
         reconstructGraph();
@@ -682,9 +707,13 @@ function Graph() {
                 data: { id: `${i}` },
                 position: positions[i] || undefined
             })),
-            ...arcs.map((a, i) => ({
-                data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
-            }))
+            ...arcs.map((a, i) => {
+                let tmp = {
+                    data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}`}
+                }
+                if(a.length === 4) tmp.data.color = a[3];
+                return tmp;
+            })
         ];
         return elements;
     }

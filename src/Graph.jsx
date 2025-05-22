@@ -4,6 +4,7 @@ import cxtmenu from 'cytoscape-cxtmenu';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
+import { connect } from 'socket.io-client';
 
 let nodes = [
     [0, 0, 0, 0],
@@ -374,6 +375,7 @@ function Graph() {
 
     //websocket 
     const connectToSocket = () => {
+        setConnected(!connected);
         if (socketRef.current) return;
 
         socketRef.current = new WebSocket("ws://localhost:8080/ws");
@@ -385,7 +387,7 @@ function Graph() {
         };
 
         socketRef.current.onmessage = (event) => {
-            console.log(event)
+            console.log(event);
         };
 
         socketRef.current.onclose = () => {
@@ -558,7 +560,7 @@ function Graph() {
                 }
                 cy.add(arc);
                 // arcs.push(arc)
-                arcs.push([selectedNode.id(), node.id(), 10]);
+                arcs.push([parseInt(selectedNode.id(),10), parseInt(node.id(), 10), 10]);
                 selectedNode.removeClass('selected');
                 selectedNode = null;
                 reconstructGraph();
@@ -594,8 +596,8 @@ function Graph() {
                     </div>
                     <VehiclesMenu />
                     <div className='position-absolute top-0 left-0'>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={connectToSocket}>
-                            {connected===false? 'Connect To Socket': 'Disconnecto From Socket'}
+                        <button type="button" className="btn btn-primary btn-sm" onClick={connectToSocket} disabled={connected}>
+                            {connected===false? 'Connect To Socket': 'Disconnect From Socket'}
                         </button>
                     </div>
                 </div>
@@ -610,6 +612,40 @@ function Graph() {
             "vehicles": vehicles.map(v => [v.q, v.f])
         };
         return json;
+    }
+
+    //TO DO give the possibiliti to chose color and distance
+    function addArc(i, j){
+        let arc = {
+            group: 'edges',
+            data: {
+                id: (arcs.length).toString(),
+                source: i.toString(),
+                target: j.toString(),
+                label: 10,
+            }
+        }
+        cyRef.current.add(arc);
+        arcs.push([i, j, 10]);
+    }
+
+    //TO DO change the label
+    function renderRoute(route, i){
+        route.map(a=>{
+            a.push([a.i, a.j, 10]);
+        });
+    }
+
+    function showSolutions(solutions) {
+        cyRef.current.arcs.edges().remove();
+        arcs = [];
+        solutions.map((routes)=>{
+            //r will be a list of arcs;
+            routes.map((r, i)=>{
+                renderRoute(r, i)
+            })
+        });
+        reconstructGraph();
     }
 
     function removeElement(ele, cy) {

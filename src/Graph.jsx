@@ -4,8 +4,9 @@ import cxtmenu from 'cytoscape-cxtmenu';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
-// import { connect } from 'socket.io-client';
 
+
+//uncomment if you want an example
 let nodes = [
     [0, 0, 0, 0],
     [5, 0, 100, 180],
@@ -50,6 +51,13 @@ vehicles = vehicles.map((x, i) => {
         f: x[1],
     }
 });
+
+// comment if you want an example
+
+// let nodes = [];
+// let arcs = [];
+// let vehicles = [];
+
 
 function Arc({ ele, setArcMenu }) {
     const arc = arcs[parseInt(ele.id().replace('n', ''), 10)];
@@ -153,13 +161,21 @@ function Node({ ele, setNodeMenu }) {
 
     //unpdating the data of the node
     function editStats() {
-        let q = document.querySelector('#q').value;
-        let a = document.querySelector('#a').value;
-        let b = document.querySelector('#b').value;
-        n[0] = q;
-        n[2] = a;
-        n[3] = b;
-        disposeModal();
+        if(ele.id()==0){
+            n[0] = 0;
+            n[2] = 0;
+            n[3] = 0;
+            disposeModal();
+        }
+        else{
+            let q = document.querySelector('#q').value;
+            let a = document.querySelector('#a').value;
+            let b = document.querySelector('#b').value;
+            n[0] = q;
+            n[2] = a;
+            n[3] = b;
+            disposeModal();
+        }
     }
 
     //remove the rightclick default function 
@@ -204,6 +220,7 @@ function Node({ ele, setNodeMenu }) {
                                     id="q"
                                     defaultValue={n[0]}
                                     min={0}
+                                    {...(ele.id() == 0 ? { max: 0 } : {})}
                                 />
                             </div>
                             <div className="mb-3">
@@ -216,6 +233,7 @@ function Node({ ele, setNodeMenu }) {
                                     id="a"
                                     defaultValue={n[2]}
                                     min={0}
+                                    {...(ele.id() == 0 ? { max: 0 } : {})}
                                 />
                             </div>
                             <div className="mb-3">
@@ -228,6 +246,7 @@ function Node({ ele, setNodeMenu }) {
                                     id="b"
                                     defaultValue={n[3]}
                                     min={0}
+                                    {...(ele.id() == 0 ? { max: 0 } : {})}
                                 />
                             </div>
                         </div>
@@ -314,27 +333,25 @@ function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
     );
 }
 
-function VehiclesMenu() {
-    const [vehiclesState, setVehiclesState] = useState(vehicles);
-    const [nextIndex, setNextIndex] = useState(vehicles[vehicles.length - 1].id + 1);
+function VehiclesMenu(vehiclesState) {
+    // const [vehiclesState, setVehiclesState] = useState(vehicles);
+    const [nextIndex, setNextIndex] = useState(vehicles.length > 0? vehicles[vehicles.length - 1].id + 1: 0);
     function removeHandle(id) {
-        let u = vehiclesState.slice();
+        let u = vehiclesState.vehiclesState.slice();
         u.splice(u.indexOf(u.find(x => x.id == id)), 1);
-        console.log(u);
-        setVehiclesState(u);
+        vehiclesState.setVehiclesState(u);
     }
 
     function addVehicle() {
-        let tmp = [...vehiclesState];
+        let tmp = [...vehiclesState.vehiclesState];
         tmp.push({
             id: nextIndex,
             q: 0,
             f: 0,
         });
         setNextIndex(nextIndex + 1);
-        setVehiclesState(tmp);
+        vehiclesState.setVehiclesState(tmp);
     }
-
 
 
     return (
@@ -353,8 +370,8 @@ function VehiclesMenu() {
 
                 <ul className="list-group p-0 m-2 mh-70">
                     {
-                        vehiclesState.map(x => {
-                            return <Vehicle key={x.id} id={x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} />
+                        vehiclesState.vehiclesState.map(x => {
+                            return <Vehicle key={x.id} id={x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState.vehiclesState} onStateChange={vehiclesState.setVehiclesState} />
                         })
                     }
                 </ul>
@@ -372,6 +389,7 @@ function Graph() {
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
     const [connected, setConnected] = useState(false);
+    const [vehiclesState, setVehiclesState] = useState(vehicles);
 
     //websocket 
     const connectToSocket = () => {
@@ -380,13 +398,13 @@ function Graph() {
 
         socketRef.current = new WebSocket("ws://localhost:8080/ws");
         socketRef.current.binaryType = "arraybuffer";
+        console.log(getJson());
 
         socketRef.current.onopen = () => {
             setConnected(true);
             console.log("WebSocket connected");
             // socketRef.current.send("Ciao dal client!");
             socketRef.current.send(getJson());
-            console.log(getJson());
         };
 
         socketRef.current.onmessage = (event) => {
@@ -555,16 +573,16 @@ function Graph() {
                 selectedNode = node;
                 node.addClass('selected');
             } else if (selectedNode !== node) {
-                let arc = {
-                    group: 'edges',
-                    data: {
-                        id: (arcs.length).toString(),
-                        source: selectedNode.id(),
-                        target: node.id(),
-                        label: 10,
-                    }
-                }
-                cy.add(arc);
+                // let arc = {
+                //     group: 'edges',
+                //     data: {
+                //         id: (arcs.length).toString(),
+                //         source: selectedNode.id(),
+                //         target: node.id(),
+                //         label: 10,
+                //     }
+                // }
+                // cy.add(arc);
                 // arcs.push(arc)
                 arcs.push([parseInt(selectedNode.id(),10), parseInt(node.id(), 10), 10]);
                 selectedNode.removeClass('selected');
@@ -600,7 +618,7 @@ function Graph() {
                     <div className='col-9 h-100'>
                         <div className='w-100 h-100' ref={cyRef}></div>
                     </div>
-                    <VehiclesMenu />
+                    <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState}/>
                     <div className='position-absolute top-0 left-0'>
                         <button type="button" className="btn btn-primary btn-sm" onClick={connectToSocket} disabled={connected}>
                             {connected===false? 'Connect To Socket': 'Disconnect From Socket'}
@@ -612,10 +630,18 @@ function Graph() {
     );
 
     function getGraph() {
-        let json = {
-            "nodes": nodes,
-            "arcs": arcs,
-            "vehicles": vehicles.map(v => [v.q, v.f])
+        const json = {
+            "graph": JSON.stringify(
+                {
+                    "nodes": nodes.map(n => [n[0], n[1], n[2], n[3]]),
+                    "arcs": arcs.map(a => [a[0], a[1], a[2]])
+                }
+            ),
+            "fleet": JSON.stringify(
+                {
+                    "vehicles": vehiclesState.map(v=> [v.q, v.f])
+                }
+            )
         };
         return json;
     }
@@ -624,19 +650,6 @@ function Graph() {
     }
 
     //TO DO give the possibiliti to chose color and distance
-    // function addArc(i, j){
-    //     let arc = {
-    //         group: 'edges',
-    //         data: {
-    //             id: (arcs.length).toString(),
-    //             source: i.toString(),
-    //             target: j.toString(),
-    //             label: 10,
-    //         }
-    //     }
-    //     cyRef.current.add(arc);
-    //     arcs.push([i, j, 10]);
-    // }
 
 
     function shuffleArray(arr){
@@ -676,7 +689,8 @@ function Graph() {
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());
         if (ele.group() === 'nodes') {
-            nodes.splice(ele.id(), 1);
+            nodes.splice(parseInt(ele.id()), 1);
+            nodes[0] = [0,0,0,0];
             const removedIds = removedGroup.map(ele => ele.id());
             arcs = arcs.filter((_, index) => {
                 const arcId = `n${index}`;
@@ -692,15 +706,15 @@ function Graph() {
     }
 
     function getGraphElements() {
-        const positions = {};
-        cyRef.current.nodes().map((node, i) => {
-            if (parseInt(node.id(), 10) !== i) {
-                positions[(parseInt(node.id(), 10) - 1).toString()] = node.position();
-            }
-            else {
-                positions[node.id()] = node.position();
-            }
+        let tmp = {};
+        let positions = {};
+        cyRef.current.nodes().map((node) => {
+            tmp[node.id()] = node.position();
         });
+        Object.values(tmp).map((pos, i) => {
+            positions[`${i}`] = pos
+        });
+        console.log(positions);
 
         const elements = [
             ...nodes.map((_, i) => ({

@@ -410,7 +410,8 @@ function Graph() {
         socketRef.current.onmessage = (event) => {
             console.log(event);
             if (event.data instanceof ArrayBuffer){
-                showSolutions(JSON.parse(event.data));
+                // showSolutions(JSON.parse(event.data));
+                showSolution(JSON.parse(event.data).s);
             }
         };
 
@@ -667,7 +668,8 @@ function Graph() {
         });
     }
 
-    function showSolutions(solutions) {
+    function showSolution(solution){
+        // let s = JSON.parse(solution).s;
         cyRef.current.arcs.edges().remove();
         arcs = [];
         let colors =  [
@@ -677,14 +679,27 @@ function Graph() {
             '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
         ];
         colors = shuffleArray(colors);
-
-        solutions.map((routes)=>{
-            routes.map((r, i)=>{
-                renderRoute(r, colors[i])
-            })
-        });
+        renderRoute(solution, colors[0])
         reconstructGraph();
     }
+
+    // function showSolutions(solutions) {
+    //     cyRef.current.arcs.edges().remove();
+    //     arcs = [];
+    //     let colors =  [
+    //         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+    //         '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+    //         '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+    //         '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+    //     ];
+    //     colors = shuffleArray(colors);
+    //     solutions.map((routes)=>{
+    //         routes.map((r, i)=>{
+    //             renderRoute(r, colors[i])
+    //         })
+    //     });
+    //     reconstructGraph();
+    // }
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());

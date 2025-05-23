@@ -14,7 +14,8 @@
     "cytoscape": "^3.32.0",
     "cytoscape-cxtmenu": "^3.5.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-use-websocket": "^4.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

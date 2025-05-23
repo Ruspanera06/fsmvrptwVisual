@@ -4,6 +4,7 @@ import cxtmenu from 'cytoscape-cxtmenu';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 
 //uncomment if you want an example
@@ -36,6 +37,11 @@ let arcs = [
     [14, 8, 10], [15, 8, 15], [7, 15, 50], [15, 7, 50]
 ];
 
+// arcs = arcs.map(x=>{
+//     x.push("#6c757d");
+//     return x;
+// });
+
 let vehicles = [
     [20, 20],
     [30, 35],
@@ -43,6 +49,8 @@ let vehicles = [
     [70, 120],
     [120, 225]
 ];
+
+let originalArcs = null;
 
 vehicles = vehicles.map((x, i) => {
     return {
@@ -57,6 +65,8 @@ vehicles = vehicles.map((x, i) => {
 // let nodes = [];
 // let arcs = [];
 // let vehicles = [];
+// let originalArcs = null;
+
 
 
 function Arc({ ele, setArcMenu }) {
@@ -161,13 +171,13 @@ function Node({ ele, setNodeMenu }) {
 
     //unpdating the data of the node
     function editStats() {
-        if(ele.id()==0){
+        if (ele.id() == 0) {
             n[0] = 0;
             n[2] = 0;
             n[3] = 0;
             disposeModal();
         }
-        else{
+        else {
             let q = document.querySelector('#q').value;
             let a = document.querySelector('#a').value;
             let b = document.querySelector('#b').value;
@@ -335,7 +345,7 @@ function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
 
 function VehiclesMenu(vehiclesState) {
     // const [vehiclesState, setVehiclesState] = useState(vehicles);
-    const [nextIndex, setNextIndex] = useState(vehicles.length > 0? vehicles[vehicles.length - 1].id + 1: 0);
+    const [nextIndex, setNextIndex] = useState(vehicles.length > 0 ? vehicles[vehicles.length - 1].id + 1 : 0);
     function removeHandle(id) {
         let u = vehiclesState.vehiclesState.slice();
         u.splice(u.indexOf(u.find(x => x.id == id)), 1);
@@ -385,45 +395,20 @@ let selectedNode = null;
 
 function Graph() {
     const cyRef = useRef(null);
-    const socketRef = useRef(null);
+    // const socketRef = useRef(null);
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
     const [connected, setConnected] = useState(false);
     const [vehiclesState, setVehiclesState] = useState(vehicles);
-
-    //websocket 
-    const connectToSocket = () => {
-        setConnected(!connected);
-        if (socketRef.current) return;
-
-        socketRef.current = new WebSocket("http://127.0.0.1:8080/ws");
-        socketRef.current.binaryType = "arraybuffer";
-
-        socketRef.current.onopen = () => {
-            setConnected(true);
-            console.log("WebSocket connected");
-            socketRef.current.send(getJson());
-        };
-
-        socketRef.current.onmessage = (event) => {
-            console.log(event);
-            if (event.data instanceof ArrayBuffer){
-                console.log(event.data)
-                // showSolution(JSON.parse(event.data));
-            }
-        };
-
-        socketRef.current.onclose = () => {
-            setConnected(false);
-            socketRef.current.close()
-            socketRef.current = null;
-            console.log("WebSocket chiuso");
-        };
-
-        socketRef.current.onerror = (err) => {
-            console.error("Errore WebSocket:", err);
-        };
-    };
+    // const [originalArcs, setOriginalArcs] = useState(null);
+    const [z, setZ] = useState("infinite");
+    const WS_URL = "ws://127.0.0.1:8080/ws";
+    const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
+        connected ? WS_URL : null,
+        {
+            shouldReconnect: () => false
+        }
+    );
 
     //cyto useEffect
     useEffect(() => {
@@ -460,11 +445,30 @@ function Graph() {
                     selector: 'edge',
                     style: {
                         'width': 3,
-                        'line-color': '#6c757d',
+                        'line-color': '#6c757d',  // ✅ colore di default
                         'target-arrow-color': '#6c757d',
                         'target-arrow-shape': 'triangle',
-                        'curve-style': 'unbundled-bezier',
-                        // 'control-point-distance': 20,
+                        'curve-style': 'bezier',
+                        'control-point-weight': 0.5,
+                        'label': 'data(label)',
+                        'font-size': 12,
+                        'color': '#000',
+                        'text-rotation': 'autorotate',
+                        'text-background-color': '#fff',
+                        'text-background-opacity': 1,
+                        'text-border-width': 1,
+                        'text-border-color': '#000',
+                        'z-index': 10,
+                    },
+                },
+                {
+                    selector: 'edge[color]',
+                    style: {
+                        'width': 3,
+                        'line-color': 'data(color)',
+                        'target-arrow-color': 'data(color)',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
                         'control-point-weight': 0.5,
                         'label': 'data(label)',
                         'font-size': 12,
@@ -477,33 +481,21 @@ function Graph() {
                         'z-index': 10,
                     }
                 },
-                {
-                    selector: 'edge',
-                    style: {
-                        'curve-style': 'bezier',
-                        // 'control-point-distance': 'data(distance)',
-                        'control-point-weight': 0.5,
-                        'target-arrow-shape': 'triangle',
-                        'line-color': '#888',
-                        'target-arrow-color': '#888',
-                        'width': 2,
-                    },
-                },
             ]
         });
         cyRef.current = cy;
         // cy.layout({ name: 'cose', animate: true }).run();
-        cy.style()
-            .selector('edge')
-            .style({
-                'curve-style': 'bezier',
-                // 'control-point-distance': 30,
-                'control-point-weight': 0.5,
-                'target-arrow-shape': 'triangle',
-                'line-color': '#ccc',
-                'target-arrow-color': '#ccc'
-            })
-            .update();
+        // cy.style()
+        //     .selector('edge')
+        //     .style({
+        //         'curve-style': 'bezier',
+        //         // 'control-point-distance': 30,
+        //         'control-point-weight': 0.5,
+        //         'target-arrow-shape': 'triangle',
+        //         'line-color': 'data(color)',
+        //         'target-arrow-color': 'data(color)',
+        //     })
+        //     .update();
 
 
         cy.style()
@@ -573,18 +565,7 @@ function Graph() {
                 selectedNode = node;
                 node.addClass('selected');
             } else if (selectedNode !== node) {
-                // let arc = {
-                //     group: 'edges',
-                //     data: {
-                //         id: (arcs.length).toString(),
-                //         source: selectedNode.id(),
-                //         target: node.id(),
-                //         label: 10,
-                //     }
-                // }
-                // cy.add(arc);
-                // arcs.push(arc)
-                arcs.push([parseInt(selectedNode.id(),10), parseInt(node.id(), 10), 10]);
+                arcs.push([parseInt(selectedNode.id(), 10), parseInt(node.id(), 10), 10]);
                 selectedNode.removeClass('selected');
                 selectedNode = null;
                 reconstructGraph();
@@ -604,9 +585,26 @@ function Graph() {
             }
         });
 
-        // colorBranchesFrom('0', cy);
-
     }, []);
+
+    //websocket
+    useEffect(() => {
+        if (readyState === ReadyState.OPEN) {
+            console.log(getJson())
+            sendJsonMessage(getGraph());
+        }
+    }, [readyState]);
+
+    useEffect(() => {
+        if (lastJsonMessage !== null) {
+            setZ(lastJsonMessage.z)
+            if (originalArcs === null) {
+                originalArcs = [...arcs];
+            }
+        }
+        showSolution(lastJsonMessage);
+        console.log(lastJsonMessage)
+    }, [lastJsonMessage]);
 
 
     return (
@@ -618,11 +616,12 @@ function Graph() {
                     <div className='col-9 h-100'>
                         <div className='w-100 h-100' ref={cyRef}></div>
                     </div>
-                    <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState}/>
+                    <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState} />
                     <div className='position-absolute top-0 left-0'>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={!connected? connectToSocket: socketRef.current.close()}>
-                            {connected===false? 'Connect To Socket': 'Disconnect From Socket'}
+                        <button type="button" className="btn btn-primary btn-sm" onClick={() => setConnected(prev => !prev)}>
+                            {connected === false ? 'Connect To Socket' : 'Disconnect From Socket'}
                         </button>
+                        <p>z: {z}</p>
                     </div>
                 </div>
             </div>
@@ -633,77 +632,60 @@ function Graph() {
         const json = {
             "graph": JSON.stringify(
                 {
-                    "nodes": nodes.map(n => [n[0], n[1], n[2], n[3]]),
+                    "nodes": nodes.map(n => [n[0], n[2], n[3]]),
                     "arcs": arcs.map(a => [a[0], a[1], a[2]])
                 }
             ),
             "fleet": JSON.stringify(
                 {
-                    "vehicles": vehiclesState.map(v=> [v.q, v.f])
+                    "vehicles": vehiclesState.map(v => [v.q, v.f])
                 }
             )
         };
         return json;
     }
-    function getJson(){
+    function getJson() {
         return JSON.stringify(getGraph())
     }
 
-    //TO DO give the possibiliti to chose color and distance
-
-
-    function shuffleArray(arr){
-        for(let i = arr.length - 1; i > 0; i--){
-            let j = Math.floor(Math.random() * (i+1));
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
             [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr;
     }
 
+    function showSolution(solution) {
+        if (solution !== null) {
+            cyRef.current.edges().remove();
+            arcs = [];
+            let colors = [
+                '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+                '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+                '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+                '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+            ];
+            colors = shuffleArray(colors);
+            solution.routes.map((r, i) => {
+                renderRoute(r[0], colors[i])
+            });
+            reconstructGraph();
+        }
+    }
+
     //TO DO change the label
-    function renderRoute(route, color){
-        route.map(a=>{
-            a.push([a.i, a.j, a.d, color]);
+    function renderRoute(route, color) {
+        route.map((a, i) => {
+            arcs.push([a.i, a.j, i + 1, color]);
         });
     }
-
-    function showSolution(solution){
-        cyRef.current.arcs.edges().remove();
-        arcs = [];
-        let colors =  [
-            '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
-            '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
-            '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
-            '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
-        ];
-        colors = shuffleArray(colors);
-        renderRoute(solution, colors[0])
-        reconstructGraph();
-    }
-
-    // function showSolutions(solutions) {
-    //     cyRef.current.arcs.edges().remove();
-    //     arcs = [];
-    //     let colors =  [
-    //         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
-    //         '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
-    //         '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
-    //         '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
-    //     ];
-    //     colors = shuffleArray(colors);
-    //     solutions.map((routes)=>{
-    //         routes.map((r, i)=>{
-    //             renderRoute(r, colors[i])
-    //         })
-    //     });
-    //     reconstructGraph();
-    // }
 
     function removeElement(ele, cy) {
         const removedGroup = ele.union(ele.connectedEdges());
         if (ele.group() === 'nodes') {
             nodes.splice(parseInt(ele.id()), 1);
-            nodes[0] = [0,0,0,0];
+            nodes[0] = [0, 0, 0, 0];
             const removedIds = removedGroup.map(ele => ele.id());
             arcs = arcs.filter((_, index) => {
                 const arcId = `n${index}`;
@@ -727,20 +709,30 @@ function Graph() {
         Object.values(tmp).map((pos, i) => {
             positions[`${i}`] = pos
         });
-        console.log(positions);
 
+
+        const combinedArcs = [...arcs, ...originalArcs];
         const elements = [
             ...nodes.map((_, i) => ({
                 data: { id: `${i}` },
                 position: positions[i] || undefined
             })),
-            ...arcs.map((a, i) => {
+            ...combinedArcs.map((a, i) => {
                 let tmp = {
-                    data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}`}
+                    data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
                 }
-                if(a.length === 4) tmp.data.color = a[3];
+                if (a.length === 4) {tmp.data.color = a[3];}
+                else{tmp.data.color = "#6c757d";}
                 return tmp;
-            })
+            }),
+            // ...originalArcs.map((a, i) => {
+            //     let tmp = {
+            //         data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
+            //     }
+            //     tmp.data.color = "#6c757d";
+            //     // if(a.length === 4) tmp.data.color = a[3];
+            //     return tmp;
+            // })
         ];
         return elements;
     }

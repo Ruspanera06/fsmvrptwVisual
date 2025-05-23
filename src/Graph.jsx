@@ -396,27 +396,26 @@ function Graph() {
         setConnected(!connected);
         if (socketRef.current) return;
 
-        socketRef.current = new WebSocket("ws://localhost:8080/ws");
+        socketRef.current = new WebSocket("http://127.0.0.1:8080/ws");
         socketRef.current.binaryType = "arraybuffer";
-        console.log(getJson());
 
         socketRef.current.onopen = () => {
             setConnected(true);
             console.log("WebSocket connected");
-            // socketRef.current.send("Ciao dal client!");
             socketRef.current.send(getJson());
         };
 
         socketRef.current.onmessage = (event) => {
             console.log(event);
             if (event.data instanceof ArrayBuffer){
-                // showSolutions(JSON.parse(event.data));
-                showSolution(JSON.parse(event.data).s);
+                console.log(event.data)
+                // showSolution(JSON.parse(event.data));
             }
         };
 
         socketRef.current.onclose = () => {
             setConnected(false);
+            socketRef.current.close()
             socketRef.current = null;
             console.log("WebSocket chiuso");
         };
@@ -621,7 +620,7 @@ function Graph() {
                     </div>
                     <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState}/>
                     <div className='position-absolute top-0 left-0'>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={connectToSocket} disabled={connected}>
+                        <button type="button" className="btn btn-primary btn-sm" onClick={!connected? connectToSocket: socketRef.current.close()}>
                             {connected===false? 'Connect To Socket': 'Disconnect From Socket'}
                         </button>
                     </div>
@@ -669,7 +668,6 @@ function Graph() {
     }
 
     function showSolution(solution){
-        // let s = JSON.parse(solution).s;
         cyRef.current.arcs.edges().remove();
         arcs = [];
         let colors =  [

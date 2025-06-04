@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape';
 import cxtmenu from 'cytoscape-cxtmenu';
+import coseBilkent from 'cytoscape-cose-bilkent';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
@@ -395,6 +396,8 @@ function Graph() {
     const [vehiclesState, setVehiclesState] = useState(vehicles);
     const [z, setZ] = useState("infinite");
     const [editable, setEditable] = useState(true);
+    const editableRef = useRef(editable);
+    // console.log(editable)
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
         connected ? WS_URL : null,
@@ -406,6 +409,7 @@ function Graph() {
     //cyto useEffect
     useEffect(() => {
         cytoscape.use(cxtmenu);
+        cytoscape.use(coseBilkent);
         const elements = [
             ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
             ...arcs.map((a, i) => ({
@@ -486,6 +490,18 @@ function Graph() {
                 'border-color': '#FF0000'
             })
             .update();
+        
+        // const layout = cy.layout({
+        //     name: 'cose-bilkent',
+        //     animate: true,
+        //     randomize: true,
+        //     fit: true,
+        //     nodeDimensionsIncludeLabels: true,
+        //     idealEdgeLength: 100,
+        // // altri parametri opzionali
+        // });
+
+        // layout.run();
 
         //control pannel for nodes
         cy.cxtmenu({
@@ -494,15 +510,18 @@ function Graph() {
                 {
                     content: 'edit',
                     select: (ele) => {
-                        if(editable) return;
-                        showNodeMenu(ele, nodeMenu, setNodeMenu);
+                        if(editableRef.current){
+                            showNodeMenu(ele, nodeMenu, setNodeMenu);
+                        }
                     }
                 },
                 {
                     content: 'X',
                     select: (ele) => {
-                        if(editable) return;
-                        removeElement(ele, cy);
+                        console.log(editableRef.current);
+                        if(editableRef.current){
+                            removeElement(ele, cy);
+                        } return;
                     }
                 }
             ]
@@ -514,14 +533,14 @@ function Graph() {
                 {
                     content: 'modifica',
                     select: (ele) => {
-                        if(!editable) return;
+                        if(!editableRef.current) return;
                         showArcMenu(ele, arcMenu, setArcMenu);
                     }
                 },
                 {
                     content: 'X',
                     select: (ele) => {
-                        if(!editable) return;
+                        if(!editableRef.current) return;
                         removeElement(ele, cy);
                     }
                 }
@@ -530,7 +549,7 @@ function Graph() {
 
         //create node with right click
         cy.on('cxttap', function (evt) {
-            if(editable) return;
+            if(!editableRef.current) return;
             if (evt.target === cy) {
                 const position = evt.position;
                 let n = [0, 0, 0, 0, { x: position.x, y: position.y }];
@@ -547,7 +566,7 @@ function Graph() {
 
         //add an arc by clicking 2 node(the sequence of click is important)
         cy.on('tap', 'node', function (evt) {
-            if(editable) return;
+            if(!editableRef.current) return;
             const node = evt.target;
             if (!selectedNode) {
                 selectedNode = node;
@@ -575,6 +594,10 @@ function Graph() {
 
     }, []);
 
+    useEffect(() => {
+    editableRef.current = editable;
+}, [editable]);
+
     //websocket
 
     // click to start connection
@@ -585,7 +608,6 @@ function Graph() {
             cyRef.current.autoungrabify(true);
             cyRef.current.autolock(true);
             cyRef.current.autounselectify(true);
-            setEditable(false);
         }
     }, [readyState]);
 
@@ -616,7 +638,7 @@ function Graph() {
                     </div>
                     <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState} />
                     <div className='position-absolute top-0 left-0'>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={() => setConnected(prev => !prev)}>
+                        <button type="button" className="btn btn-primary btn-sm" onClick={() => {setConnected(prev => !prev); setEditable(() => false)}}>
                             {connected === false ? 'Connect To Socket' : 'Disconnect From Socket'}
                         </button>
                         <p>z: {z}</p>

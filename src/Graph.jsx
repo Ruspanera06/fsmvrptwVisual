@@ -37,11 +37,6 @@ let arcs = [
     [14, 8, 10], [15, 8, 15], [7, 15, 50], [15, 7, 50]
 ];
 
-// arcs = arcs.map(x=>{
-//     x.push("#6c757d");
-//     return x;
-// });
-
 let vehicles = [
     [20, 20],
     [30, 35],
@@ -344,7 +339,6 @@ function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
 }
 
 function VehiclesMenu(vehiclesState) {
-    // const [vehiclesState, setVehiclesState] = useState(vehicles);
     const [nextIndex, setNextIndex] = useState(vehicles.length > 0 ? vehicles[vehicles.length - 1].id + 1 : 0);
     function removeHandle(id) {
         let u = vehiclesState.vehiclesState.slice();
@@ -395,12 +389,10 @@ let selectedNode = null;
 
 function Graph() {
     const cyRef = useRef(null);
-    // const socketRef = useRef(null);
     const [nodeMenu, setNodeMenu] = useState(null);
     const [arcMenu, setArcMenu] = useState(null);
     const [connected, setConnected] = useState(false);
     const [vehiclesState, setVehiclesState] = useState(vehicles);
-    // const [originalArcs, setOriginalArcs] = useState(null);
     const [z, setZ] = useState("infinite");
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -588,6 +580,8 @@ function Graph() {
     }, []);
 
     //websocket
+
+    // click to start connection
     useEffect(() => {
         if (readyState === ReadyState.OPEN) {
             console.log(getJson())
@@ -595,6 +589,7 @@ function Graph() {
         }
     }, [readyState]);
 
+    //every time a new solution comes
     useEffect(() => {
         if (lastJsonMessage !== null) {
             setZ(lastJsonMessage.z)
@@ -603,7 +598,10 @@ function Graph() {
             }
         }
         showSolution(lastJsonMessage);
-        console.log(lastJsonMessage)
+        if(lastJsonMessage !== null){
+            console.log("ciao")
+            sendJsonMessage("OK");
+        }
     }, [lastJsonMessage]);
 
 

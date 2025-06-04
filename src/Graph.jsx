@@ -84,7 +84,7 @@ function Arc({ ele, setArcMenu }) {
 
     function editStats() {
         let d = document.querySelector('#d').value;
-        arc[2] = d;
+        arc[2] = parseInt(d, 10);
         ele.data('label', arc[2]);
         disposeModal();
     }
@@ -169,7 +169,7 @@ function Node({ ele, setNodeMenu }) {
         document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
     };
 
-    //unpdating the data of the node
+    //updating the data of the node
     function editStats() {
         if (ele.id() == 0) {
             n[0] = 0;
@@ -181,9 +181,9 @@ function Node({ ele, setNodeMenu }) {
             let q = document.querySelector('#q').value;
             let a = document.querySelector('#a').value;
             let b = document.querySelector('#b').value;
-            n[0] = q;
-            n[2] = a;
-            n[3] = b;
+            n[0] = parseInt(q, 10);
+            n[2] = parseInt(a, 10);
+            n[3] = parseInt(b, 10);
             disposeModal();
         }
     }
@@ -710,8 +710,8 @@ function Graph() {
             positions[`${i}`] = pos
         });
 
-
-        const combinedArcs = [...arcs, ...originalArcs];
+        console.log(originalArcs)
+        const combinedArcs = originalArcs !== null ? [...arcs, ...originalArcs]: [...arcs];
         const elements = [
             ...nodes.map((_, i) => ({
                 data: { id: `${i}` },

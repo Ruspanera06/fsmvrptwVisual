@@ -476,18 +476,6 @@ function Graph() {
             ]
         });
         cyRef.current = cy;
-        // cy.layout({ name: 'cose', animate: true }).run();
-        // cy.style()
-        //     .selector('edge')
-        //     .style({
-        //         'curve-style': 'bezier',
-        //         // 'control-point-distance': 30,
-        //         'control-point-weight': 0.5,
-        //         'target-arrow-shape': 'triangle',
-        //         'line-color': 'data(color)',
-        //         'target-arrow-color': 'data(color)',
-        //     })
-        //     .update();
 
 
         cy.style()
@@ -497,6 +485,7 @@ function Graph() {
                 'border-color': '#FF0000'
             })
             .update();
+
         //control pannel for nodes
         cy.cxtmenu({
             selector: 'node',
@@ -723,14 +712,7 @@ function Graph() {
                 else{tmp.data.color = "#6c757d";}
                 return tmp;
             }),
-            // ...originalArcs.map((a, i) => {
-            //     let tmp = {
-            //         data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
-            //     }
-            //     tmp.data.color = "#6c757d";
-            //     // if(a.length === 4) tmp.data.color = a[3];
-            //     return tmp;
-            // })
+
         ];
         return elements;
     }

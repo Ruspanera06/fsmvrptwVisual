@@ -394,6 +394,7 @@ function Graph() {
     const [connected, setConnected] = useState(false);
     const [vehiclesState, setVehiclesState] = useState(vehicles);
     const [z, setZ] = useState("infinite");
+    const [editable, setEditable] = useState(true);
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
         connected ? WS_URL : null,
@@ -493,12 +494,14 @@ function Graph() {
                 {
                     content: 'edit',
                     select: (ele) => {
+                        if(editable) return;
                         showNodeMenu(ele, nodeMenu, setNodeMenu);
                     }
                 },
                 {
                     content: 'X',
                     select: (ele) => {
+                        if(editable) return;
                         removeElement(ele, cy);
                     }
                 }
@@ -511,12 +514,14 @@ function Graph() {
                 {
                     content: 'modifica',
                     select: (ele) => {
+                        if(!editable) return;
                         showArcMenu(ele, arcMenu, setArcMenu);
                     }
                 },
                 {
                     content: 'X',
                     select: (ele) => {
+                        if(!editable) return;
                         removeElement(ele, cy);
                     }
                 }
@@ -525,6 +530,7 @@ function Graph() {
 
         //create node with right click
         cy.on('cxttap', function (evt) {
+            if(editable) return;
             if (evt.target === cy) {
                 const position = evt.position;
                 let n = [0, 0, 0, 0, { x: position.x, y: position.y }];
@@ -541,6 +547,7 @@ function Graph() {
 
         //add an arc by clicking 2 node(the sequence of click is important)
         cy.on('tap', 'node', function (evt) {
+            if(editable) return;
             const node = evt.target;
             if (!selectedNode) {
                 selectedNode = node;
@@ -575,6 +582,10 @@ function Graph() {
         if (readyState === ReadyState.OPEN) {
             console.log(getJson())
             sendJsonMessage(getGraph());
+            cyRef.current.autoungrabify(true);
+            cyRef.current.autolock(true);
+            cyRef.current.autounselectify(true);
+            setEditable(false);
         }
     }, [readyState]);
 

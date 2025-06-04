@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape';
 import cxtmenu from 'cytoscape-cxtmenu';
 import coseBilkent from 'cytoscape-cose-bilkent';
+import spread from 'cytoscape-spread';
+import cola from 'cytoscape-cola';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import * as bootstrap from "bootstrap";
@@ -410,6 +412,8 @@ function Graph() {
     useEffect(() => {
         cytoscape.use(cxtmenu);
         cytoscape.use(coseBilkent);
+        cytoscape.use(spread);
+        cytoscape.use(cola);
         const elements = [
             ...nodes.map((_, i) => ({ data: { id: `${i}` } })),
             ...arcs.map((a, i) => ({
@@ -491,17 +495,23 @@ function Graph() {
             })
             .update();
         
-        // const layout = cy.layout({
-        //     name: 'cose-bilkent',
-        //     animate: true,
-        //     randomize: true,
-        //     fit: true,
-        //     nodeDimensionsIncludeLabels: true,
-        //     idealEdgeLength: 100,
-        // // altri parametri opzionali
-        // });
 
-        // layout.run();
+        //layout
+        cy.layout({
+            name: 'cola',
+            edgeLength: 150,
+            centerGraph: false,
+            maxSimulationTime: 4000,
+            animate: false,
+            randomize: true,
+            stop: ()=>{
+                cy.layout({name:"spread", padding: 40}).run();
+            }
+        }).run();
+
+        // cy.layout({
+        //     name: 'spread'
+        // }).run();
 
         //control pannel for nodes
         cy.cxtmenu({
@@ -605,8 +615,8 @@ function Graph() {
         if (readyState === ReadyState.OPEN) {
             console.log(getJson())
             sendJsonMessage(getGraph());
-            cyRef.current.autoungrabify(true);
-            cyRef.current.autolock(true);
+            // cyRef.current.autoungrabify(true);
+            // cyRef.current.autolock(true);
             cyRef.current.autounselectify(true);
         }
     }, [readyState]);

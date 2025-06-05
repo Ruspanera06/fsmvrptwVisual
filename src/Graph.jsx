@@ -405,7 +405,6 @@ function VehiclesMenu({ vehiclesState, setVehiclesState, editable }) {
                 <ul className="list-group p-0 m-2 mh-70">
                     {
                         vehiclesState.map((x, i) => {
-                            { console.log(x) }
                             return editable ? <Vehicle key={i} id={x.id} removeHandle={
                                 () => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} /> :
                                 <VehiclesNotEditable key={x.id} id={x.id} vehiclesState={vehiclesState} ></VehiclesNotEditable>
@@ -764,8 +763,9 @@ function Graph() {
                     <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState} editable={editable} />
                     <div className='position-absolute top-0 left-0 m-2 container'>
                         <div className='btn-group'>
-                            <button type="button" className="btn btn-primary btn-sm" onClick={() => { setConnected(prev => !prev); setEditable(prev => !prev) }}>
+                            <button type="button" disabled={!editable} className="btn btn-primary btn-sm" onClick={() => { setConnected(prev => !prev); setEditable(prev => !prev) }}>
                                 {connected === false ? 'Connect To Socket' : 'Disconnect From Socket'}
+                                
                             </button>
                             <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
                                 cyRef.current.layout({

@@ -11,59 +11,59 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 
 //uncomment if you want an example
-let nodes = [
-    [0, 0, 0, 0],
-    [5, 0, 100, 180],
-    [10, 0, 90, 150],
-    [7, 0, 200, 220],
-    [23, 0, 115, 148],
-    [15, 0, 347, 500],
-    [6, 0, 264, 290],
-    [71, 0, 410, 563],
-    [4, 0, 380, 456],
-    [16, 0, 683, 730],
-    [38, 0, 587, 758],
-    [9, 0, 350, 388],
-    [46, 0, 864, 931],
-    [3, 0, 451, 525],
-    [16, 0, 711, 743],
-    [8, 0, 385, 415]
-];
+// let nodes = [
+//     [0, 0, 0, 0],
+//     [5, 0, 100, 180],
+//     [10, 0, 90, 150],
+//     [7, 0, 200, 220],
+//     [23, 0, 115, 148],
+//     [15, 0, 347, 500],
+//     [6, 0, 264, 290],
+//     [71, 0, 410, 563],
+//     [4, 0, 380, 456],
+//     [16, 0, 683, 730],
+//     [38, 0, 587, 758],
+//     [9, 0, 350, 388],
+//     [46, 0, 864, 931],
+//     [3, 0, 451, 525],
+//     [16, 0, 711, 743],
+//     [8, 0, 385, 415]
+// ];
 
-let arcs = [
-    [0, 1, 10], [0, 3, 40], [0, 5, 45], [1, 4, 5], [2, 4, 5],
-    [2, 7, 10], [2, 5, 25], [3, 6, 10], [3, 2, 5], [4, 1, 25],
-    [4, 6, 15], [5, 2, 5], [5, 3, 20], [6, 0, 10], [7, 0, 15],
-    [8, 9, 10], [8, 11, 40], [8, 13, 45], [9, 12, 5], [10, 12, 5],
-    [10, 15, 10], [10, 13, 25], [11, 14, 10], [11, 10, 5],
-    [12, 9, 25], [12, 14, 15], [13, 10, 5], [13, 11, 20],
-    [14, 8, 10], [15, 8, 15], [7, 15, 50], [15, 7, 50]
-];
+// let arcs = [
+//     [0, 1, 10], [0, 3, 40], [0, 5, 45], [1, 4, 5], [2, 4, 5],
+//     [2, 7, 10], [2, 5, 25], [3, 6, 10], [3, 2, 5], [4, 1, 25],
+//     [4, 6, 15], [5, 2, 5], [5, 3, 20], [6, 0, 10], [7, 0, 15],
+//     [8, 9, 10], [8, 11, 40], [8, 13, 45], [9, 12, 5], [10, 12, 5],
+//     [10, 15, 10], [10, 13, 25], [11, 14, 10], [11, 10, 5],
+//     [12, 9, 25], [12, 14, 15], [13, 10, 5], [13, 11, 20],
+//     [14, 8, 10], [15, 8, 15], [7, 15, 50], [15, 7, 50]
+// ];
 
-let vehicles = [
-    [20, 20],
-    [30, 35],
-    [40, 50],
-    [70, 120],
-    [120, 225]
-];
+// let vehicles = [
+//     [20, 20],
+//     [30, 35],
+//     [40, 50],
+//     [70, 120],
+//     [120, 225]
+// ];
 
-let originalArcs = null;
+// let originalArcs = null;
 
-vehicles = vehicles.map((x, i) => {
-    return {
-        id: i,
-        q: x[0],
-        f: x[1],
-    }
-});
+// vehicles = vehicles.map((x, i) => {
+//     return {
+//         id: i,
+//         q: x[0],
+//         f: x[1],
+//     }
+// });
 
 // comment if you want an example
 
-// let nodes = [];
-// let arcs = [];
-// let vehicles = [];
-// let originalArcs = null;
+let nodes = [];
+let arcs = [];
+let vehicles = [];
+let originalArcs = null;
 
 
 
@@ -278,6 +278,8 @@ function Node({ ele, setNodeMenu }) {
     );
 }
 
+
+
 function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
 
 
@@ -341,16 +343,41 @@ function Vehicle({ id, removeHandle, vehiclesState, onStateChange }) {
     );
 }
 
-function VehiclesMenu(vehiclesState) {
+function VehiclesNotEditable({ id, vehiclesState }) {
+    return (
+        <>
+            <li className="list-group-item position-relative bg-dark-subtle">
+                <div className='container mt-3'>
+                    <div style={{ backgroundColor: vehiclesState.find(x => x.id === id)?.color, width: "50px", height: "50px", borderRadius: "1000px" }}></div>
+                    <div className='row'>
+                        <div className='col-6'>
+                            <label htmlFor={'q' + id} className="form-label">
+                                Capacity: {vehiclesState.find(x => x.id == id).q}
+                            </label>
+                        </div>
+                        <div className='col-6'>
+                            <label htmlFor={'f' + id} className="form-label">
+                                Cost: {vehiclesState.find(x => x.id == id).f}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </>
+
+    );
+}
+
+function VehiclesMenu({ vehiclesState, setVehiclesState, editable }) {
     const [nextIndex, setNextIndex] = useState(vehicles.length > 0 ? vehicles[vehicles.length - 1].id + 1 : 0);
     function removeHandle(id) {
-        let u = vehiclesState.vehiclesState.slice();
+        let u = vehiclesState.slice();
         u.splice(u.indexOf(u.find(x => x.id == id)), 1);
-        vehiclesState.setVehiclesState(u);
+        setVehiclesState(u);
     }
 
     function addVehicle() {
-        let tmp = [...vehiclesState.vehiclesState];
+        let tmp = [...vehiclesState];
         tmp.push({
             id: nextIndex,
             q: 0,
@@ -361,6 +388,7 @@ function VehiclesMenu(vehiclesState) {
     }
 
 
+
     return (
         <>
             <div className='col h-100 my-4 overflow-y-scroll'>
@@ -368,20 +396,109 @@ function VehiclesMenu(vehiclesState) {
                     <div className='row align-items-center justify-content-center'>
                         <div className="col-6"><h2 className='text-center m-0'>Vehicles</h2></div>
                         <div className="col-2">
-                            <button type="button" className="btn btn-primary" onClick={addVehicle} >
+                            {editable ? <button type="button" className="btn btn-primary" onClick={addVehicle} >
                                 <span className='fs-1'>+</span>
+                            </button> : ""}
+                        </div>
+                    </div>
+                </div>
+                <ul className="list-group p-0 m-2 mh-70">
+                    {
+                        vehiclesState.map((x, i) => {
+                            { console.log(x) }
+                            return editable ? <Vehicle key={i} id={x.id} removeHandle={
+                                () => removeHandle(x.id)} vehiclesState={vehiclesState} onStateChange={setVehiclesState} /> :
+                                <VehiclesNotEditable key={x.id} id={x.id} vehiclesState={vehiclesState} ></VehiclesNotEditable>
+                        })
+                    }
+                </ul>
+            </div>
+        </>
+    );
+}
+
+
+
+function Import({ cyRef, renderGraphJson }) {
+
+    let selectedJson = null;
+
+    function disposeModal() {
+        // setImportBtn(prev => !prev);
+        document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+    };
+
+    function readFile() {
+        const input = document.querySelector("#formFile");
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            selectedJson = e.target.result;
+            renderGraphJson(selectedJson);
+            cyRef.current.layout({
+                name: 'cola',
+                edgeLength: 150,
+                centerGraph: false,
+                maxSimulationTime: 4000,
+                animate: true,
+                randomize: true,
+                stop: () => {
+                    cyRef.current.layout({ name: "spread", padding: 80 }).run();
+                }
+            }).run();
+        };
+        reader.readAsText(file);
+        disposeModal();
+    }
+
+    return (
+        <>
+            <div
+                className="modal fade"
+                id="menuModal"
+                data-bs-backdrop="static"
+                data-bs-keyboard="false"
+            >
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h1 className="modal-title fs-5" id="exampleModalLabel">
+                                Import
+                            </h1>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                                onClick={disposeModal}
+                            />
+                        </div>
+                        <div className="modal-body">
+                            <div className="mb-3">
+                                <label htmlFor="formFile" className="form-label">
+                                    Import Graph
+                                </label>
+
+                                <input className="form-control" type="file" id="formFile" />
+                            </div>
+
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                                onClick={disposeModal}
+                            >
+                                Close
+                            </button>
+                            <button type="button" data-bs-dismiss="modal" className="btn btn-primary" onClick={readFile}>
+                                Save changes
                             </button>
                         </div>
                     </div>
                 </div>
-
-                <ul className="list-group p-0 m-2 mh-70">
-                    {
-                        vehiclesState.vehiclesState.map(x => {
-                            return <Vehicle key={x.id} id={x.id} removeHandle={() => removeHandle(x.id)} vehiclesState={vehiclesState.vehiclesState} onStateChange={vehiclesState.setVehiclesState} />
-                        })
-                    }
-                </ul>
             </div>
         </>
     );
@@ -398,8 +515,8 @@ function Graph() {
     const [vehiclesState, setVehiclesState] = useState(vehicles);
     const [z, setZ] = useState("infinite");
     const [editable, setEditable] = useState(true);
+    // const [importBtn, setImportBtn] = useState(false);
     const editableRef = useRef(editable);
-    // console.log(editable)
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
         connected ? WS_URL : null,
@@ -494,20 +611,20 @@ function Graph() {
                 'border-color': '#FF0000'
             })
             .update();
-        
+
 
         //layout
-        cy.layout({
-            name: 'cola',
-            edgeLength: 150,
-            centerGraph: false,
-            maxSimulationTime: 4000,
-            animate: false,
-            randomize: true,
-            stop: ()=>{
-                cy.layout({name:"spread", padding: 40}).run();
-            }
-        }).run();
+        // cy.layout({
+        //     name: 'cola',
+        //     edgeLength: 150,
+        //     centerGraph: false,
+        //     maxSimulationTime: 4000,
+        //     animate: false,
+        //     randomize: true,
+        //     stop: () => {
+        //         cy.layout({ name: "spread", padding: 40 }).run();
+        //     }
+        // }).run();
 
         // cy.layout({
         //     name: 'spread'
@@ -520,7 +637,7 @@ function Graph() {
                 {
                     content: 'edit',
                     select: (ele) => {
-                        if(editableRef.current){
+                        if (editableRef.current) {
                             showNodeMenu(ele, nodeMenu, setNodeMenu);
                         }
                     }
@@ -528,8 +645,7 @@ function Graph() {
                 {
                     content: 'X',
                     select: (ele) => {
-                        console.log(editableRef.current);
-                        if(editableRef.current){
+                        if (editableRef.current) {
                             removeElement(ele, cy);
                         } return;
                     }
@@ -543,14 +659,14 @@ function Graph() {
                 {
                     content: 'modifica',
                     select: (ele) => {
-                        if(!editableRef.current) return;
+                        if (!editableRef.current) return;
                         showArcMenu(ele, arcMenu, setArcMenu);
                     }
                 },
                 {
                     content: 'X',
                     select: (ele) => {
-                        if(!editableRef.current) return;
+                        if (!editableRef.current) return;
                         removeElement(ele, cy);
                     }
                 }
@@ -559,7 +675,7 @@ function Graph() {
 
         //create node with right click
         cy.on('cxttap', function (evt) {
-            if(!editableRef.current) return;
+            if (!editableRef.current) return;
             if (evt.target === cy) {
                 const position = evt.position;
                 let n = [0, 0, 0, 0, { x: position.x, y: position.y }];
@@ -576,7 +692,7 @@ function Graph() {
 
         //add an arc by clicking 2 node(the sequence of click is important)
         cy.on('tap', 'node', function (evt) {
-            if(!editableRef.current) return;
+            if (!editableRef.current) return;
             const node = evt.target;
             if (!selectedNode) {
                 selectedNode = node;
@@ -605,15 +721,14 @@ function Graph() {
     }, []);
 
     useEffect(() => {
-    editableRef.current = editable;
-}, [editable]);
+        editableRef.current = editable;
+    }, [editable]);
 
     //websocket
 
     // click to start connection
     useEffect(() => {
         if (readyState === ReadyState.OPEN) {
-            console.log(getJson())
             sendJsonMessage(getGraph());
             // cyRef.current.autoungrabify(true);
             // cyRef.current.autolock(true);
@@ -630,8 +745,7 @@ function Graph() {
             }
         }
         showSolution(lastJsonMessage);
-        if(lastJsonMessage !== null){
-            console.log("ciao")
+        if (lastJsonMessage !== null) {
             sendJsonMessage("OK");
         }
     }, [lastJsonMessage]);
@@ -641,22 +755,86 @@ function Graph() {
         <>
             {nodeMenu && <Node ele={nodeMenu} setNodeMenu={setNodeMenu} />}
             {arcMenu && <Arc ele={arcMenu} setArcMenu={setArcMenu} />}
+            <Import cyRef={cyRef} renderGraphJson={renderGraphJson} />
             <div className='container-flow h-100'>
                 <div className='row h-100'>
                     <div className='col-9 h-100'>
                         <div className='w-100 h-100' ref={cyRef}></div>
                     </div>
-                    <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState} />
-                    <div className='position-absolute top-0 left-0'>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={() => {setConnected(prev => !prev); setEditable(() => false)}}>
-                            {connected === false ? 'Connect To Socket' : 'Disconnect From Socket'}
-                        </button>
+                    <VehiclesMenu vehiclesState={vehiclesState} setVehiclesState={setVehiclesState} editable={editable} />
+                    <div className='position-absolute top-0 left-0 m-2 container'>
+                        <div className='btn-group'>
+                            <button type="button" className="btn btn-primary btn-sm" onClick={() => { setConnected(prev => !prev); setEditable(prev => !prev) }}>
+                                {connected === false ? 'Connect To Socket' : 'Disconnect From Socket'}
+                            </button>
+                            <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
+                                cyRef.current.layout({
+                                    name: 'cola',
+                                    edgeLength: 150,
+                                    centerGraph: false,
+                                    maxSimulationTime: 4000,
+                                    animate: true,
+                                    randomize: true,
+                                    stop: () => {
+                                        cyRef.current.layout({ name: "spread", padding: 80 }).run();
+                                    }
+                                }).run();
+                            }}>
+                                Order
+                            </button>
+
+                            <button type="button" className="btn btn-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#menuModal" disabled={!editable}>
+                                Import
+                            </button>
+                            <button type="button" className="btn btn-danger btn-sm" disabled={!editable} onClick={handleExport}>Export</button>
+                            <button type="button" className="btn btn-warning btn-sm" onClick={() => window.location.reload()}>Reset</button>
+                        </div>
                         <p>z: {z}</p>
                     </div>
                 </div>
             </div>
         </>
     );
+
+
+
+    function handleExport() {
+        const json = getJson();
+
+        const blob = new Blob([json], { type: 'application/json' });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'graph.json';
+        a.click();
+
+        URL.revokeObjectURL(url);
+    };
+
+    function renderGraphJson(graphJson) {
+        let file = JSON.parse(graphJson);
+        let graph = JSON.parse(file.graph);
+        let n = graph.nodes.map(x => {
+            return [x[0], 0, x[1], x[2]]
+        });
+        let a = graph.arcs;
+        let v = JSON.parse(file.fleet).vehicles;
+        nodes = n;
+        arcs = a;
+        vehicles = v;
+        vehicles = vehicles.map((x, i) => {
+            return {
+                id: i,
+                q: x[0],
+                f: x[1],
+            }
+        });
+        reconstructGraph();
+        setVehiclesState(vehicles)
+    }
 
     function getGraph() {
         const json = {
@@ -687,6 +865,7 @@ function Graph() {
     }
 
     function showSolution(solution) {
+        console.log(solution)
         if (solution !== null) {
             cyRef.current.edges().remove();
             arcs = [];
@@ -696,10 +875,17 @@ function Graph() {
                 '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
                 '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
             ];
+
+            // let v = [...vehiclesState];
+            // let lv = solution.vehicles
+            let v = []
             colors = shuffleArray(colors);
             solution.routes.map((r, i) => {
-                renderRoute(r[0], colors[i])
+                // v[i] = [v[i][0], v[i][1], colors[i]];
+                v.push({ id: i, ...r[1], color: colors[i] })
+                renderRoute(r[0], colors[i]);
             });
+            setVehiclesState(v);
             reconstructGraph();
         }
     }
@@ -740,8 +926,7 @@ function Graph() {
             positions[`${i}`] = pos
         });
 
-        console.log(originalArcs)
-        const combinedArcs = originalArcs !== null ? [...arcs, ...originalArcs]: [...arcs];
+        const combinedArcs = originalArcs !== null ? [...arcs, ...originalArcs] : [...arcs];
         const elements = [
             ...nodes.map((_, i) => ({
                 data: { id: `${i}` },
@@ -751,8 +936,8 @@ function Graph() {
                 let tmp = {
                     data: { id: `n${i}`, source: `${a[0]}`, target: `${a[1]}`, label: `${a[2]}` }
                 }
-                if (a.length === 4) {tmp.data.color = a[3];}
-                else{tmp.data.color = "#6c757d";}
+                if (a.length === 4) { tmp.data.color = a[3]; }
+                else { tmp.data.color = "#6c757d"; }
                 return tmp;
             }),
 

@@ -423,7 +423,6 @@ function Import({ cyRef, renderGraphJson }) {
     let selectedJson = null;
 
     function disposeModal() {
-        // setImportBtn(prev => !prev);
         document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
     };
 
@@ -438,9 +437,6 @@ function Import({ cyRef, renderGraphJson }) {
             cyRef.current.layout({
                 name: 'cola',
                 edgeLength: 150,
-                centerGraph: false,
-                maxSimulationTime: 4000,
-                animate: true,
                 randomize: true,
                 stop: () => {
                     cyRef.current.layout({ name: "spread", padding: 80 }).run();
@@ -514,7 +510,6 @@ function Graph() {
     const [vehiclesState, setVehiclesState] = useState(vehicles);
     const [z, setZ] = useState("infinite");
     const [editable, setEditable] = useState(true);
-    // const [importBtn, setImportBtn] = useState(false);
     const editableRef = useRef(editable);
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -562,7 +557,7 @@ function Graph() {
                     selector: 'edge',
                     style: {
                         'width': 3,
-                        'line-color': '#6c757d',  // ✅ colore di default
+                        'line-color': '#6c757d', 
                         'target-arrow-color': '#6c757d',
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier',
@@ -610,24 +605,6 @@ function Graph() {
                 'border-color': '#FF0000'
             })
             .update();
-
-
-        //layout
-        // cy.layout({
-        //     name: 'cola',
-        //     edgeLength: 150,
-        //     centerGraph: false,
-        //     maxSimulationTime: 4000,
-        //     animate: false,
-        //     randomize: true,
-        //     stop: () => {
-        //         cy.layout({ name: "spread", padding: 40 }).run();
-        //     }
-        // }).run();
-
-        // cy.layout({
-        //     name: 'spread'
-        // }).run();
 
         //control pannel for nodes
         cy.cxtmenu({
@@ -729,8 +706,6 @@ function Graph() {
     useEffect(() => {
         if (readyState === ReadyState.OPEN) {
             sendJsonMessage(getGraph());
-            // cyRef.current.autoungrabify(true);
-            // cyRef.current.autolock(true);
             cyRef.current.autounselectify(true);
         }
     }, [readyState]);
@@ -771,9 +746,6 @@ function Graph() {
                                 cyRef.current.layout({
                                     name: 'cola',
                                     edgeLength: 150,
-                                    centerGraph: false,
-                                    maxSimulationTime: 4000,
-                                    animate: true,
                                     randomize: true,
                                     stop: () => {
                                         cyRef.current.layout({ name: "spread", padding: 80 }).run();
@@ -876,12 +848,9 @@ function Graph() {
                 '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
             ];
 
-            // let v = [...vehiclesState];
-            // let lv = solution.vehicles
             let v = []
             colors = shuffleArray(colors);
             solution.routes.map((r, i) => {
-                // v[i] = [v[i][0], v[i][1], colors[i]];
                 v.push({ id: i, ...r[1], color: colors[i] })
                 renderRoute(r[0], colors[i]);
             });

@@ -383,8 +383,9 @@ function VehiclesMenu({ vehiclesState, setVehiclesState, editable }) {
             q: 0,
             f: 0,
         });
+        console.log(tmp)
         setNextIndex(nextIndex + 1);
-        vehiclesState.setVehiclesState(tmp);
+        setVehiclesState(tmp);
     }
 
 

@@ -16,7 +16,7 @@ It was our first time using **React** and **Bootstrap**, so the code may not be 
 
 1. Clone this repository  
 2. Clone [Rust server](https://github.com/Simone-Lauro-itis-pr/fsmvrptw-server-noauth)
-3. run Rust server with the command cargo run -r 
+3. run Rust server with the command `cargo run -r `
 4. Install dependencies on this project:
     ```bash
     npm install react react-dom

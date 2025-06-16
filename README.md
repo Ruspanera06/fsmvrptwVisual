@@ -43,3 +43,14 @@ This is the base interface
 
 
 ### Funtionality
+- You can create a Node by pressing right click
+- You can create an Arc by pressing sequentialy 2 differt Node, the click order will define the direction of the Node
+- Holding right click on a Node or a Arc and slightly move the mouse, it will open a mini menu on the target.  
+By pointing to the X direction you can remove the target.       
+By pointing the cursor to the Edit voice a modal with the attribute of the Node will open and you will be able to edit it's parameters
+- Holding left click on aNode will let give you the possibility to move the Node for better visibility
+
+### Start the connection
+This is the visibility of the node whenever you get a result from the WebService  
+file📄: [ src/examples/graph.json](src/examples/graph.json)
+![graph example](image-1.png)

@@ -26,3 +26,20 @@ It was our first time using **React** and **Bootstrap**, so the code may not be 
 5. Start the development server with `npm run dev`
 
 Make sure the Rust backend is running on the configured address before starting the frontend.
+
+
+## How To Use
+This project not only is used to represent the FSMVRPTW but is even usable as a graph editor.
+It is possible to create a graph editing it and import or export one
+
+This is the base interface
+- `Connect To Socket`: to start the connection to the socket when you are done to editing the graph
+- `Order`: it position the graph in a random position but makes the ARCs easier to see
+- `Import`: import a JSON to render the graph
+- `Export`: export a graph as a JSON
+- `Reset`: refresh the page
+- `+`: add a vehicle 
+![base interface](image.png)
+
+
+### Funtionality

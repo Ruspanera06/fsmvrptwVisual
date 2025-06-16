@@ -512,6 +512,7 @@ function Graph() {
     const [z, setZ] = useState("infinite");
     const [editable, setEditable] = useState(true);
     const editableRef = useRef(editable);
+    //change the WebService Url 
     const WS_URL = "ws://127.0.0.1:8080/ws";
     const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
         connected ? WS_URL : null,

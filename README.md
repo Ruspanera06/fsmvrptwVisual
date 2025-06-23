@@ -52,5 +52,12 @@ By pointing the cursor to the Edit voice a modal with the attribute of the Node 
 
 ### Start the connection
 This is the visibility of the node whenever you get a result from the WebService  
-file📄: [ src/examples/graph.json](src/examples/graph.json)
-![graph example](image-1.png)
+graph of example📄: [ src/examples/graph.json](src/examples/graph.json)
+Initial Graph
+![graph example](graph_not_connected.png)  
+Connected Graph  
+![graph example](graph_connected.png)  
+Step of example
+![graph example](graph_connected_1_step.png)  
+Solution
+![graph example](graph_connected_solution.png)  
